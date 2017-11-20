@@ -1,0 +1,8 @@
+\begin{thebibliography}{Lam78}
+
+\bibitem[Lam78]{Lamport78}
+Leslie Lamport.
+\newblock Time, clocks, and the ordering of events in a distributed system.
+\newblock {\em Commun. ACM}, 21(7):558--565, 1978.
+
+\end{thebibliography}
