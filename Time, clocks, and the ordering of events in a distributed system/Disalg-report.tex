@@ -1,0 +1,63 @@
+\documentclass[UTF8]{article}
+
+%--
+\usepackage{ctex}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+
+
+%--
+\begin{document}
+    
+%--
+{\flushleft \bf \Large 姓名：} 杨佩成
+
+{\flushleft \bf \Large 学号：} MG1733079
+
+{\flushleft \bf \Large 日期：} 2017.12.10
+
+
+%=========================================================================
+\section*{论文信息}
+    
+L. Lamport, Time, clocks, and the ordering of events in a distributed system. Communications of the ACM. 21, 558–565 (1978).
+
+
+%=========================================================================
+\section{概述}
+
+	分布式系统是一组不同进程的集合，这些进程在空间上是分离的并且通过交换消息来进行通信。在分布式系统中，有时很难确定两个事件中哪个先发生。“happen before”关系只是整个系统中的一个偏序。这篇文章讨论了用“happen before”定义的偏序，并
+    
+	偏序
+
+	基本假设：
+	
+	系统由一组进程组成
+	
+	单个进程是一组有序事件的集合，发送消息和收到消息也是事件
+
+	定义“happen before”关系，用“$\to$”表示“happen before”关系。
+
+	定义：(1)若$a$和$b$是用一个进程中的两个事件，并且$a$在$b$之前发生，则$a \to b$。
+
+		(2)若$a$和$b$在两个不同的进程中，$a$是一条消息的发送方，$b$是同一条消息的接收方，则$a \to b$。
+
+		(3)若$a \to b$，$b \to c$，则$a \to c$。若$a \nrightarrow b$,$b \nrightarrow a$，则称事件$a$和$b$是同步的。
+
+	逻辑时钟
+	
+	我们通过给每个事件分配一个数字来给系统引入时钟。给每一个进程$P_i$定义一个时钟$C_i$，$C_i$实际上是一个函数，$C_i \langle a \rangle$表示进程$P_i$给事件$a$分配的数字。整个系统的时钟用函数$C$表示，系统给事件$b$分配的数字表示为$C \langle b \rangle$。若$b$是进程$P_j$中的事件，则$C\langle b\rangle =C_j\langle b\rangle$。
+	
+	时钟条件：
+	
+	对于任意事件$a$，$b$：若$a \to b$，则$C \langle a \rangle < C \langle b \rangle$。
+	
+	只要下面两个条件满足，时钟条件就可以满足
+	
+	若$a$和$b$是进程$P_i$的两个事件，$a$在$b$之前发生，则$C_i \langle a \rangle < C_i \langle b \rangle$。
+
+	若$a$在进程$P_i$中，$b$在进程$P_j$中，$a$是一条消息的发送方，$b$是同一条消息的接收方，则$C_i \langle a \rangle < C_j \langle b \rangle$。
+%--
+\end{document}
