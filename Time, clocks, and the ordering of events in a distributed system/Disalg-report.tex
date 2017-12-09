@@ -5,8 +5,9 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath}
 \usepackage{amssymb}
-
-
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{float}
 
 %--
 \begin{document}
@@ -28,19 +29,13 @@ L. Lamport, Time, clocks, and the ordering of events in a distributed system. Co
 %=========================================================================
 \section{概述}
 
-	分布式系统是一组不同进程的集合，这些进程在空间上是分离的并且通过交换消息来进行通信。在分布式系统中，有时很难确定两个事件中哪个先发生。“happen before”关系只是整个系统中的一个偏序。这篇文章讨论了用“happen before”定义的偏序，并
+	分布式系统是一组不同进程的集合，这些进程在空间上是分离的并且通过交换消息来进行通信。在分布式系统中，有时很难确定两个事件中哪个先发生。“happen before”关系只是整个系统中的一个偏序。这篇文章讨论了用“happened before”定义的偏序，并提出一个将偏序扩展到系统全序的算法。我们利用系统的全序关系可以解决分布式系统中的同步问题。但是因为系统的全序并不是唯一的，可能会产生一些异常行为，这些异常行为可以通过引入物理时钟来避免。
 
 \section{偏序}
-  
-	
 
-	基本假设：
-	
-	系统由一组进程组成
-	
-	单个进程是一组有序事件的集合，发送消息和收到消息也是事件
+	偏序指的是系统中部分事件的先后顺序。在分布式系统中我们有时无法确定系统中哪个事件先发生，我们只能通过“happened before”关系推出系统中的偏序关系。
 
-	定义“happened before”关系，用“$\to$”表示“happened before”关系。
+	我们假设系统由一组进程组成，每个进程是一组有序事件的集合，发送消息和收到消息也是事件。我们用“$\to$”来表示两个事件的“happened before”关系。
 
 	定义：(1)若$a$和$b$是用一个进程中的两个事件，并且$a$在$b$之前发生，则$a \to b$。
 
@@ -48,15 +43,19 @@ L. Lamport, Time, clocks, and the ordering of events in a distributed system. Co
 
 		(3)若$a \to b$，$b \to c$，则$a \to c$。若$a \nrightarrow b$,$b \nrightarrow a$，则称事件$a$和$b$是同步的。
 
-	逻辑时钟
+	如图1，水平方向代表空间，垂直方向代表	时间，越高代表时间越靠后。点表示事件，垂直的线表示进程，曲线表示消息。$a \to b$表示在一个进程上$a$在$b$之前或者在一条曲线上上$a$指向$b$。我们还可以把$\to$理解为因果关系，如果$a \to b$则可以认为$a$是$b$发生的原因。
+\begin{figure}[H]
+\centering
+\small
+\includegraphics[width=10cm,height=10cm]{1.JPG}
+\caption{时空图}
+\end{figure}
 	
-	我们通过给每个事件分配一个数字来给系统引入时钟。给每一个进程$P_i$定义一个时钟$C_i$，$C_i$实际上是一个函数，$C_i \langle a \rangle$表示进程$P_i$给事件$a$分配的数字。整个系统的时钟用函数$C$表示，系统给事件$b$分配的数字表示为$C \langle b \rangle$。若$b$是进程$P_j$中的事件，则$C\langle b\rangle =C_j\langle b\rangle$。
+	我们在“happened before”的基础上定义系统的逻辑时钟。我们通过给每个事件分配一个数字来给系统引入时钟。给每一个进程$P_i$定义一个时钟$C_i$，$C_i$实际上是一个函数，$C_i \langle a \rangle$表示进程$P_i$给事件$a$分配的数字。整个系统的时钟用函数$C$表示，系统给事件$b$分配的数字表示为$C \langle b \rangle$。若$b$是进程$P_j$中的事件，则$C\langle b\rangle =C_j\langle b\rangle$。在这个定义中$C_i$与物理时钟无关，所以我们可以认为$C_i$是系统的逻辑时钟。因为在逻辑时钟定义中没有涉及物理时间，所以我们定义的正确性必须基于事件发生的顺序。我们定义的时钟条件如下，
 	
-	时钟条件：
+	$Clock \quad Condition. \quad$对于任意事件$a$，$b$，若$a \to b$，则$C \langle a \rangle < C \langle b \rangle$。
 	
-	对于任意事件$a$，$b$：若$a \to b$，则$C \langle a \rangle < C \langle b \rangle$。
-	
-	只要下面两个条件满足，时钟条件就可以满足
+	只要下面两个条件满足，时钟条件就可以满足，
 	
 	$C1$.若$a$和$b$是进程$P_i$的两个事件，$a$在$b$之前发生，则$C_i \langle a \rangle < C_i \langle b \rangle$。
 
@@ -95,13 +94,21 @@ L. Lamport, Time, clocks, and the ordering of events in a distributed system. Co
 
 	4.当进程$P_j$收到来自$P_i$的释放资源消息时，它会从请求队列中将$T_m:P_i$请求资源的消息删除。
 	
-	5.当下面两个条件满足时，进程$P_i$会被授予资源：$\romannumeral1$在它自己的消息队列中，不存在比$T_m:P_i$更早的请求资源消息，这里的顺序通过全序定义的。$romannumeral2$$P_i$发送的请求收到其它进程的回复。
+	5.当下面两个条件满足时，进程$P_i$会被授予资源：$\romannumeral1$在它自己的消息队列中，不存在比$T_m:P_i$更早的请求资源消息，这里的顺序通过全序定义的。$\romannumeral2$$P_i$发送的请求收到其它进程的回复。
 
 	这是一个分布式的算法，不需要中心节点，每个进程都独立地运行。这种算法可以实现分布式系统中的任何同步操作。因为所有的进程都是按照时间戳（由系统的全序决定）来执行命令的，每个进程都是执行的一个相同的命令序列。但是这种算法需要所有的进程都积极参与，当一个进程发生故障时，其它进程就不能继续执行命令，这会导致整个系统的停止。如果没有物理时钟，我们是无法区分进程故障和进程暂停的。
 
 	异常动作：
 
-	我们的资源调度算法是通过系统的全序来对请求排序，这就存在发生异常行为的可能。假设一个人在计算机A上提出一个请求A，然后打电话给一个朋友让他在电脑B上提出一个请求B，系统很有可能先对B进行响应。系统并不知道A在B之前发生，因为这个先后顺序信息是基于系统外部的消息的。假设$\varphi$是系统内部所有事件的集合，\underline{$\varphi$}是系统内部事件和与内部事件相关的外部事件的并集。我们用$\boldsymbol{\rightarrow}$表示\underline{$\varphi$}中的“happened before”关系。$A \boldsymbol{\rightarrow} B$不能推出$A \rightarrow B$。因为我们不能保证系统的内部事件能推出A在B之前发生。
+	我们的资源调度算法是通过系统的全序来对请求排序，这就存在发生异常行为的可能。假设一个人在计算机A上提出一个请求A，然后打电话给一个朋友让他在电脑B上提出一个请求B，系统很有可能先对B进行响应。系统并不知道A在B之前发生，因为这个先后顺序信息是基于系统外部消息的。假设$\varphi$是系统内部所有事件的集合，\underline{$\varphi$}是系统内部事件和与内部事件相关的外部事件的并集。我们用$\boldsymbol{\rightarrow}$表示\underline{$\varphi$}中的“happened before”关系。$A \boldsymbol{\rightarrow} B$不能推出$A \rightarrow B$。因为我们不能保证从系统的内部事件能推出A在B之前发生。有两种可能的方式可以用来避免这种异常行为，第一种方式是在系统中引入关于$A \boldsymbol{\rightarrow} B$的相关信息。第二种方式是在系统中构建一个满足强时钟条件的时钟。强时钟条件是指对于$\varphi$中的事件$a$和$b$，如果$a \boldsymbol{\rightarrow} b$，则$C\langle a \rangle < C\langle b\rangle$。我们可以引入物理时钟来满足强时钟条件，从而消除系统中的异常行为。
+
+	物理时钟：
+
+\section{总结}
+	本文基于“happened before”的概念定义了分布式系统中的偏序关系，提出了一个将偏序扩展到全序的算法，并利用全序解决了一个同步问题。在分布式系统中，只有偏序是确定的，全序是并不是唯一的，这会导致系统中异常行为的产生，异常行为可以通过同步物理时钟来消除。
+	
+	这篇文章中的一个重要观点是我们时空中的事件并不存在一个唯一的全序关系，不同的观察者对事件发生的先后顺序会有不同的看法。只有当事件$e2$是由事件$e1$引起时，事件$e1$和$e2$才会存在一个唯一的先后顺序。通过定义一个系统的全序，我们理论上可以实现任意的分布式系统。一个分布式系统可以描述为一个特殊的具有多个由网络互联的处理器的串行状态机。如果能对输入请求全排序，就能实现任何由网络互联处理器组成的状态机，因此也就能实现任意的分布式系统。
+	
 
 %--
 \end{document}
